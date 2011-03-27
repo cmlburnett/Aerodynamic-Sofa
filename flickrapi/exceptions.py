@@ -14,6 +14,12 @@ class FlickrError(Exception):
     when thrown.
     '''
 
+    code = None
+
+    def __init__(self, message, code=None):
+        Exception.__init__(self, message)
+        self.code = int(code)
+
 class CancelUpload(Exception):
     '''Raise this exception in an upload/replace callback function to
     abort the upload.

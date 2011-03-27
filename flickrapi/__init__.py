@@ -275,7 +275,7 @@ class FlickrAPI(object):
             return rsp
         
         err = rsp.find('err')
-        raise FlickrError(u'Error: %(code)s: %(msg)s' % err.attrib)
+        raise FlickrError(u'Error: %(code)s: %(msg)s' % err.attrib, err.attrib['code'])
 
     def sign(self, dictionary):
         """Calculate the flickr signature for a set of params.
