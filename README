@@ -53,3 +53,43 @@ Each of these is stored in an XML file like the following for contacts and profi
     </profile>
 </asofa>
 
+
+SETUP
+The easiest way is to create a dot file with necessary information in it.  Run
+`python sync.py -h` to get the juicy details on the file name and contents of
+the dot file.  This script does it's work through the Flickr API and you must
+have a Flickr API key to use it.
+
+http://www.flickr.com/services/apps/create/noncommercial/
+
+Since this project has grown from personal code for my own needs, I have not
+researched how publicly-distributed applications handle this whole API key
+thing.  Input on this is welcome.  Until then, create an API key and put the
+access key and secret key in the config file.
+
+The first time the script is invoked it must route you through Flickr's web site
+to authorize the use of the key against your account.  This is invoked through
+the flickrapi module.  Once authorized then that is cached on your computer and
+will not be repeated.
+
+The storage directory in the config file is where the XML files will be created,
+read, and updated.  If it does not exist then it will be created.  Note that
+the entire path is not created, just the last directory if it does not exist.
+
+
+USAGE
+Running with the -h flag is pretty explanatory.  If -l is supplied with
+appropriate letters then only those are synchronized.  Perhaps the most used for
+me is `python sync.py -l p -d YYYY-MM-DD` to sync the photos and sets that were
+viewed, commented, or favorited on said date.
+Alternatively, `python sync.py -l p -d 'YYYY-MM-DD|YYYY-MM-DD'` to synchronize
+the date range specified.  Note that the date range is separate by a pipe | and,
+in bash, must be quoted to prevent bash from thinking you wish to pipe commands
+together.
+
+If you have made changes to a particular set then you can specify the set ID and
+synchronize just that set.  Be sure to add the -r flag to synchronize the
+photos/videos in that set too.
+
+If you have made changes to a particular photo/video then you can specify the
+ID and synchronize just that photo/video.
