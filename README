@@ -49,7 +49,7 @@ Each of these is stored in an XML file like the following for contacts and profi
         <tags>
             <tag val="circus" />
             <tag val="water" />
-		</tags>
-	</profile>
+        </tags>
+    </profile>
 </asofa>
 
