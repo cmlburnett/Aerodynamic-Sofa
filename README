@@ -1,2 +1,55 @@
 Aerodynamic Sofa
 Synchronizes the entirety of a Flickr account to the local computer for backup.
+
+PURPOSE
+The purpose and goal of Aerodynamic Sofa is to create a full copy of all
+metadata locally that mirrors what is on Flickr.  I actually created this prior
+to the February 2011 incident where Flickr nuked an active account (bindermichi)
+accidentally and mostly for reasons that came true for Mirco.  It also makes me
+feel warm and fuzzy knowing the countless hours I have tagged, entitled,
+described, noted, located, cataloged (sets, etc.), etc. have a nice, pretty
+backup on my own computer.
+
+This backup should be sufficiently robust that recreating my Flickr account
+would be doable, though not necessarily easy, but doable nonetheless.
+
+
+SYNCHRONIZATION
+There are eight things that can be synchronized from Flickr:
+* Collections
+* Favorites
+* Galleries
+* Photos
+* Groups
+* Sets
+* Contacts
+* Profile
+
+Each of these is stored in an XML file like the following for contacts and profile:
+
+<?xml version="1.0" encoding="utf-8"?>
+<asofa>
+    <contacts>
+        <contact nsid="24662369@N07" realname="NASA Goddard Space Flight Center" username="NASA Goddard Photo and Video" family="0" friend="0" ignored="0" />
+    </contacts>
+</asofa>
+
+<?xml version="1.0" encoding="utf-8"?>
+<asofa>
+    <profile nsid="11111111@N01" username="upload" realname="Bob">
+        <mbox>XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX</mbox>
+        <location>Somewhereville</location>
+        <firstphoto date="XXXXXXXXXX" datestr="YYYY-MM-DD HH:MM:SS" />
+        <numphotos>8234</numphotos>
+        <views>18489</views>
+        <preferences contenttype="1" geoperms="1" hidden="1" importgeoexif="0" privacy="4" safety="1" />
+        <url_profile>http://www.flickr.com/people/upload/</url_profile>
+        <url_photos>http://www.flickr.com/photos/upload/</url_photos>
+        <url_mobile>http://m.flickr.com/photostream.gne?id=11111111</url_mobile>
+        <tags>
+            <tag val="circus" />
+            <tag val="water" />
+		</tags>
+	</profile>
+</asofa>
+
