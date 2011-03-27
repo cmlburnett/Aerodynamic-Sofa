@@ -252,7 +252,7 @@ dir: ./flickr/"""
 
 
 	# Trailing slash
-	if sdir[-1] != '/':
+	if sdir and sdir[-1] != '/':
 		sdir += '/'
 
 	# User fail
