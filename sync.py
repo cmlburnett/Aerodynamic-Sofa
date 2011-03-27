@@ -102,7 +102,7 @@ Options:
   -h          Show this help
   -q          Quiet the output so write nothing while processing stats
  --accesskey  The Flickr API access key
- --secretkey  The FLickr API secret key
+ --secretkey  The Flickr API secret key
  --uid        The Flickr user ID
   -l OPTS     Limit the sync (any order of characters):
                c    Collections
