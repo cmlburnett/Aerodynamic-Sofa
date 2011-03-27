@@ -98,7 +98,7 @@ Sufficient metadata should exist that it can be matched to an original
 file if necessary for possible recreation of your photostream.
 
 Options:
-  -c FILE     Specify the config file location (default: .fsync.config)
+  -c FILE     Specify the config file location (default: .aerodynamicsofa.config)
   -h          Show this help
   -q          Quiet the output so write nothing while processing stats
  --accesskey  The Flickr API access key
@@ -144,7 +144,7 @@ secretkey: XXXXXXXXXXXXXXXX
 uid: XXXXXXXXXXXX
 
 [Storage]
-dir: ./fsync/"""
+dir: ./flickr/"""
 		return 0
 
 	# Define variables up front to know when they've been set
@@ -424,7 +424,7 @@ def fsync_contacts(sdir, u, quiet):
 	# Open output XML file
 	f = open(fname, 'w')
 	f.write('<?xml version="1.0" encoding="utf-8"?>\n')
-	f.write('<fsync>\n')
+	f.write('<asofa>\n')
 	f.write('\t<contacts>\n')
 
 	# Write contacts in order by nsid
@@ -437,7 +437,7 @@ def fsync_contacts(sdir, u, quiet):
 
 
 	f.write('\t</contacts>\n')
-	f.write('</fsync>')
+	f.write('</asofa>')
 	f.close()
 
 def fsync_favorites(sdir, u, quiet):
@@ -489,7 +489,7 @@ def fsync_favorites(sdir, u, quiet):
 	# Open output XML file
 	f = open(fname, 'w')
 	f.write('<?xml version="1.0" encoding="utf-8"?>\n')
-	f.write('<fsync>\n')
+	f.write('<asofa>\n')
 	f.write('\t<favorites>\n')
 
 	# Write favorites in order by psid
@@ -502,7 +502,7 @@ def fsync_favorites(sdir, u, quiet):
 
 
 	f.write('\t</favorites>\n')
-	f.write('</fsync>')
+	f.write('</asofa>')
 	f.close()
 
 def fsync_groups(sdir, u, quiet):
@@ -545,7 +545,7 @@ def fsync_groups(sdir, u, quiet):
 	# Open output XML file
 	f = open(fname, 'w')
 	f.write('<?xml version="1.0" encoding="utf-8"?>\n')
-	f.write('<fsync>\n')
+	f.write('<asofa>\n')
 	f.write('\t<groups>\n')
 
 	# Write groups in order by nsid
@@ -558,7 +558,7 @@ def fsync_groups(sdir, u, quiet):
 
 
 	f.write('\t</groups>\n')
-	f.write('</fsync>')
+	f.write('</asofa>')
 	f.close()
 
 def fsync_collections(sdir, u, quiet, ids, recurse):
@@ -618,14 +618,14 @@ def fsync_collections(sdir, u, quiet, ids, recurse):
 		# Open output XML file
 		f = open(fname, 'w')
 		f.write('<?xml version="1.0" encoding="utf-8"?>\n')
-		f.write('<fsync>\n')
+		f.write('<asofa>\n')
 		f.write('\t<collections>\n')
 
 		# Dump root collection
 		_fsync_collections_dump(f, collections, collections[None])
 
 		f.write('\t</collections>\n')
-		f.write('</fsync>')
+		f.write('</asofa>')
 		f.close()
 
 def _fsync_collections_fetch(u, collections, col, parent, quiet):
@@ -853,7 +853,7 @@ def fsync_sets(sdir, u, quiet, ids, recurse):
 	# Open output XML file
 	f = open(fname, 'w')
 	f.write('<?xml version="1.0" encoding="utf-8"?>\n')
-	f.write('<fsync>\n')
+	f.write('<asofa>\n')
 	f.write('\t<sets>\n')
 
 	# Write groups in order presented
@@ -873,7 +873,7 @@ def fsync_sets(sdir, u, quiet, ids, recurse):
 
 
 	f.write('\t</sets>\n')
-	f.write('</fsync>')
+	f.write('</asofa>')
 	f.close()
 
 	# Recursion
@@ -971,7 +971,7 @@ def fsync_galleries(sdir, u, quiet):
 	# Open output XML file
 	f = open(fname, 'w')
 	f.write('<?xml version="1.0" encoding="utf-8"?>\n')
-	f.write('<fsync>\n')
+	f.write('<asofa>\n')
 	f.write('\t<galleries>\n')
 
 	# Write groups in order presented
@@ -985,7 +985,7 @@ def fsync_galleries(sdir, u, quiet):
 
 
 	f.write('\t</galleries>\n')
-	f.write('</fsync>')
+	f.write('</asofa>')
 	f.close()
 
 	return galleries
@@ -1115,12 +1115,12 @@ def fsync_photos(sdir, u, quiet, ids, date=None):
 		# Open output XML file
 		f = open(fname, 'w')
 		f.write('<?xml version="1.0" encoding="utf-8"?>\n')
-		f.write('<fsync>\n')
+		f.write('<asofa>\n')
 		f.write('\t<photos>\n')
 		for pid in pids:
 			f.write('\t\t<photo id="%s" />\n' % pid)
 		f.write('\t</photos>\n')
-		f.write('</fsync>\n')
+		f.write('</asofa>\n')
 		f.close()
 
 	# Pull down each photo fully
@@ -1247,7 +1247,7 @@ def fsync_photo(sdir, u, quiet, pid, counter):
 	# Open output XML file
 	f = open(fname, 'w')
 	f.write('<?xml version="1.0" encoding="utf-8"?>\n')
-	f.write('<fsync>\n')
+	f.write('<asofa>\n')
 
 	f.write('\t<photo id="{id}" farm="{farm}" server="{server}" license="{license}" rot="{rot}" secret="{secret}" orignalsecret="{origsecret}" originalformat="{origformat}" media="{media}" views="{views}" ispublic="{ispublic}" isfriend="{isfriend}" isfamily="{isfamily}" permcomment="{permcomment}" permaddmeta="{permaddmeta}">\n'.format(**p['info']))
 	f.write('\t\t<uploaded raw="%s">%s</uploaded>\n' % (p['info']['uploaded'], datetime.datetime.fromtimestamp(float(p['info']['uploaded']))))
@@ -1342,7 +1342,7 @@ def fsync_photo(sdir, u, quiet, pid, counter):
 		f.write('\t\t</comments>\n')
 
 	f.write('\t</photo>\n')
-	f.write('</fsync>')
+	f.write('</asofa>')
 	f.close()
 
 def fsync_photo_info(sdir, u, quiet, pid):
@@ -1709,7 +1709,7 @@ def fsync_profile(sdir, u, quiet):
 	# Open output XML file
 	f = open(fname, 'w')
 	f.write('<?xml version="1.0" encoding="utf-8"?>\n')
-	f.write('<fsync>\n')
+	f.write('<asofa>\n')
 	f.write('\t<profile nsid="%s" username="%s" realname="%s">\n' % (nsid, username, realname))
 	f.write('\t\t<mbox>%s</mbox>\n' % mbox)
 	f.write('\t\t<location>%s</location>\n' % loc)
@@ -1728,7 +1728,7 @@ def fsync_profile(sdir, u, quiet):
 	for t in tags:				f.write('\t\t\t<tag val="%s" />\n' % esc(t))
 	f.write('\t\t</tags>\n')
 	f.write('\t</profile>\n')
-	f.write('</fsync>\n')
+	f.write('</asofa>\n')
 	f.close()
 
 
