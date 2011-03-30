@@ -915,6 +915,11 @@ def fsync_galleries(sdir, u, quiet):
 
 	if not quiet: print 'Syncing galleries (g)...'
 
+	# Pull down galleries from Flickr and write to file
+	galleries = _get_galleries(u.Flickr.FlickrAPI, u.getNSID(), quiet)
+	_put_galleries(galleries, sdir)
+
+def _get_galleries(api, nsid, quiet):
 	# Get all galleries
 	galleries = []
 
@@ -923,7 +928,7 @@ def fsync_galleries(sdir, u, quiet):
 	perpage = 25
 
 	while pg <= pages:
-		ret = u.Flickr.FlickrAPI.galleries_getList(user_id=u.getNSID(), per_page=perpage, page=pg)
+		ret = api.galleries_getList(user_id=nsid, per_page=perpage, page=pg)
 
 		ret2 = ret.find('galleries')
 		pages = int(ret2.attrib['pages'])
@@ -952,7 +957,7 @@ def fsync_galleries(sdir, u, quiet):
 		gl['things'] = []
 
 		while pg <= pages:
-			ret = u.Flickr.FlickrAPI.galleries_getPhotos(gallery_id=gl['id'], per_page=perpage, page=pg)
+			ret = api.galleries_getPhotos(gallery_id=gl['id'], per_page=perpage, page=pg)
 			ret2 = ret.find('photos')
 			pages = int(ret2.attrib['pages'])
 
@@ -963,18 +968,10 @@ def fsync_galleries(sdir, u, quiet):
 		if not quiet:
 			print "%s '%s' (%d things)" % (gl['id'], gl['title'], len(gl['things']))
 
+	return galleries
 
-	# Check that file doesn't exist
-	fname = sdir + 'galleries.xml'
-	if os.path.exists(fname):
-		os.unlink(fname)
-
-	# Make sure directory exists
-	if not os.path.exists(sdir):
-		os.mkdir(sdir)
-
-	# Open output XML file
-	f = open(fname, 'w')
+def _put_galleries(galleries, sdir):
+	f = _openxml(sdir, 'galleries.xml')
 	f.write('<?xml version="1.0" encoding="utf-8"?>\n')
 	f.write('<asofa>\n')
 	f.write('\t<galleries>\n')
@@ -990,10 +987,8 @@ def fsync_galleries(sdir, u, quiet):
 
 
 	f.write('\t</galleries>\n')
-	f.write('</asofa>')
+	f.write('</asofa>\n')
 	f.close()
-
-	return galleries
 
 def fsync_photos(sdir, u, quiet, ids, date=None):
 	"""
