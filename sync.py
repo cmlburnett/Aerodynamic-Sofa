@@ -1090,17 +1090,7 @@ def fsync_photos(sdir, u, quiet, ids, date=None):
 		# Save a copy of the photo id's only
 		# Don't do if date is provided
 
-		# Check that file doesn't exist
-		fname = sdir + 'photos.xml'
-		if os.path.exists(fname):
-			os.unlink(fname)
-
-		# Make sure directory exists
-		if not os.path.exists(sdir):
-			os.mkdir(sdir)
-
-		# Open output XML file
-		f = open(fname, 'w')
+		f = _openxml(sdir, 'photos.xml')
 		f.write('<?xml version="1.0" encoding="utf-8"?>\n')
 		f.write('<asofa>\n')
 		f.write('\t<photos>\n')
