@@ -496,17 +496,7 @@ def _get_favorites(api, quiet):
 	return favorites
 
 def _put_favorites(favorites, sdir):
-	# Check that file doesn't exist
-	fname = sdir + 'favorites.xml'
-	if os.path.exists(fname):
-		os.unlink(fname)
-
-	# Make sure directory exists
-	if not os.path.exists(sdir):
-		os.mkdir(sdir)
-
-	# Open output XML file
-	f = open(fname, 'w')
+	f = _openxml(sdir, 'favorites.xml')
 	f.write('<?xml version="1.0" encoding="utf-8"?>\n')
 	f.write('<asofa>\n')
 	f.write('\t<favorites>\n')
@@ -532,10 +522,15 @@ def fsync_groups(sdir, u, quiet):
 
 	if not quiet: print 'Syncing groups (r)...'
 
+	# Pull down groups from Flickr and write to file
+	groups = _get_groups(u.Flickr.FlickrAPI, u.getNSID(), quiet)
+	_put_groups(groups, sdir)
+
+def _get_groups(api, nsid, quiet):
 	# Accumulate groups here and key by photo id
 	groups = {}
 
-	ret = u.Flickr.FlickrAPI.people_getPublicGroups(user_id=u.getNSID())
+	ret = api.people_getPublicGroups(user_id=nsid)
 	grps = ret.find('groups')
 
 
@@ -550,8 +545,9 @@ def fsync_groups(sdir, u, quiet):
 		if not quiet:
 			print "%s '%s' (admin=%s, adult=%s)" % (nsid, name, admin, adult)
 
+	return groups
 
-
+def _put_group(groups, sdir):
 	# Check that file doesn't exist
 	fname = sdir + 'groups.xml'
 	if os.path.exists(fname):
