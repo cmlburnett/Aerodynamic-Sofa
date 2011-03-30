@@ -547,18 +547,8 @@ def _get_groups(api, nsid, quiet):
 
 	return groups
 
-def _put_group(groups, sdir):
-	# Check that file doesn't exist
-	fname = sdir + 'groups.xml'
-	if os.path.exists(fname):
-		os.unlink(fname)
-
-	# Make sure directory exists
-	if not os.path.exists(sdir):
-		os.mkdir(sdir)
-
-	# Open output XML file
-	f = open(fname, 'w')
+def _put_groups(groups, sdir):
+	f = _openxml(sdir, 'groups.xml')
 	f.write('<?xml version="1.0" encoding="utf-8"?>\n')
 	f.write('<asofa>\n')
 	f.write('\t<groups>\n')
@@ -571,10 +561,10 @@ def _put_group(groups, sdir):
 
 		f.write('\t\t<group id="%s" name="%s" admin="%s" adult="%s" />\n' % (c['nsid'], c['name'], int(c['admin']), int(c['adult'])))
 
-
 	f.write('\t</groups>\n')
-	f.write('</asofa>')
+	f.write('</asofa>\n')
 	f.close()
+
 
 def fsync_collections(sdir, u, quiet, ids, recurse):
 	"""
