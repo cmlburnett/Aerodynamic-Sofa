@@ -611,17 +611,7 @@ def fsync_collections(sdir, u, quiet, ids, recurse):
 			_fsync_collections_fetch(u, collections, col, None, quiet)
 
 
-		# Check that file doesn't exist
-		fname = sdir + 'collections.xml'
-		if os.path.exists(fname):
-			os.unlink(fname)
-
-		# Make sure directory exists
-		if not os.path.exists(sdir):
-			os.mkdir(sdir)
-
-		# Open output XML file
-		f = open(fname, 'w')
+		f = _openxml(sdir, 'collections.xml')
 		f.write('<?xml version="1.0" encoding="utf-8"?>\n')
 		f.write('<asofa>\n')
 		f.write('\t<collections>\n')
@@ -630,7 +620,7 @@ def fsync_collections(sdir, u, quiet, ids, recurse):
 		_fsync_collections_dump(f, collections, collections[None])
 
 		f.write('\t</collections>\n')
-		f.write('</asofa>')
+		f.write('</asofa>\n')
 		f.close()
 
 def _fsync_collections_fetch(u, collections, col, parent, quiet):
