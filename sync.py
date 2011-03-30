@@ -435,7 +435,6 @@ def fsync_contacts(sdir, u, quiet):
 
 		f.write('\t\t<contact nsid="%s" realname="%s" username="%s" family="%d" friend="%d" ignored="%d" />\n' % (c['nsid'], c['name'], c['username'], int(c['family']), int(c['friend']), int(c['ignored'])))
 
-
 	f.write('\t</contacts>\n')
 	f.write('</asofa>')
 	f.close()
