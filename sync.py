@@ -749,6 +749,38 @@ def fsync_sets(sdir, u, quiet, ids, recurse):
 
 	if not quiet: print 'Syncing sets (s)...'
 
+	sets = _get_sets(u.Flickr.FlickrAPI, ids, sdir, quiet)
+	_put_sets(sets, sdir)
+
+	# Recursion
+	if len(ids) and recurse:
+		pids = []
+
+		# Get all photo ids in all sets
+		for sid in ids:
+			# Multiple pages
+			pg = 1
+			pages = 1
+			perpage = 100
+
+			while pg <= pages:
+				ret = u.Flickr.FlickrAPI.photosets_getPhotos(photoset_id=sid, per_page=perpage, page=pg)
+				photos = ret.find('photoset')
+				pages = int(photos.attrib['pages'])
+
+				for p in photos.findall('photo'):
+					# Add photo id if it's unique to the set
+					pid = p.attrib['id']
+					if pid not in pids:
+						pids.append(pid)
+
+				pg += 1
+
+		# Pull down photos in all sets listed
+		fsync_photos(sdir, u, quiet, pids)
+
+def _get_sets(api, ids, sdir, quiet):
+	# Accumulate sets here
 	sets = []
 
 	if len(ids):
@@ -764,7 +796,7 @@ def fsync_sets(sdir, u, quiet, ids, recurse):
 
 		# Do just the sets provided as arguments
 		for sid in ids:
-			ret = u.Flickr.FlickrAPI.photosets_getInfo(photoset_id=sid)
+			ret = api.photosets_getInfo(photoset_id=sid)
 			ps = ret.find('photoset')
 
 			sid = ps.attrib['id']
@@ -777,7 +809,7 @@ def fsync_sets(sdir, u, quiet, ids, recurse):
 			sr.sets[sid] = st
 
 		# Pull down all sets to get the proper order
-		ret = u.Flickr.FlickrAPI.photosets_getList()
+		ret = api.photosets_getList()
 		ret2 = ret.find('photosets')
 
 		# Copy set information from the xml reader into the @sets list in the order found on flickr
@@ -790,7 +822,7 @@ def fsync_sets(sdir, u, quiet, ids, recurse):
 
 	else:
 		# Pull down all sets
-		ret = u.Flickr.FlickrAPI.photosets_getList()
+		ret = api.photosets_getList()
 		ret2 = ret.find('photosets')
 
 		# Get all set information first
@@ -823,7 +855,7 @@ def fsync_sets(sdir, u, quiet, ids, recurse):
 		perpage = 100
 
 		while pg <= pages:
-			ret = u.Flickr.FlickrAPI.photosets_getPhotos(photoset_id=st['id'], per_page=perpage, page=pg)
+			ret = api.photosets_getPhotos(photoset_id=st['id'], per_page=perpage, page=pg)
 			photos = ret.find('photoset')
 			pages = int(photos.attrib['pages'])
 
@@ -835,18 +867,10 @@ def fsync_sets(sdir, u, quiet, ids, recurse):
 		if not quiet:
 			print '%4d of %4d: %s (%d things)' % (cnt, maxcnt, st['title'], len(st['things']))
 
+	return sets
 
-	# Check that file doesn't exist
-	fname = sdir + 'sets.xml'
-	if os.path.exists(fname):
-		os.unlink(fname)
-
-	# Make sure directory exists
-	if not os.path.exists(sdir):
-		os.mkdir(sdir)
-
-	# Open output XML file
-	f = open(fname, 'w')
+def _put_sets(sets, sdir):
+	f = _openxml(sdir, 'sets.xml')
 	f.write('<?xml version="1.0" encoding="utf-8"?>\n')
 	f.write('<asofa>\n')
 	f.write('\t<sets>\n')
@@ -868,35 +892,8 @@ def fsync_sets(sdir, u, quiet, ids, recurse):
 
 
 	f.write('\t</sets>\n')
-	f.write('</asofa>')
+	f.write('</asofa>\n')
 	f.close()
-
-	# Recursion
-	if len(ids) and recurse:
-		pids = []
-
-		# Get all photo ids in all sets
-		for sid in ids:
-			# Multiple pages
-			pg = 1
-			pages = 1
-			perpage = 100
-
-			while pg <= pages:
-				ret = u.Flickr.FlickrAPI.photosets_getPhotos(photoset_id=sid, per_page=perpage, page=pg)
-				photos = ret.find('photoset')
-				pages = int(photos.attrib['pages'])
-
-				for p in photos.findall('photo'):
-					# Add photo id if it's unique to the set
-					pid = p.attrib['id']
-					if pid not in pids:
-						pids.append(pid)
-
-				pg += 1
-
-		# Pull down photos in all sets listed
-		fsync_photos(sdir, u, quiet, pids)
 
 def fsync_galleries(sdir, u, quiet):
 	"""
