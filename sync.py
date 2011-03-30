@@ -450,20 +450,25 @@ def _put_contacts(contacts, sdir):
 		f.write('\t\t<contact nsid="%s" realname="%s" username="%s" family="%d" friend="%d" ignored="%d" />\n' % (c['nsid'], c['name'], c['username'], int(c['family']), int(c['friend']), int(c['ignored'])))
 
 	f.write('\t</contacts>\n')
-	f.write('</asofa>')
+	f.write('</asofa>\n')
 	f.close()
+
 
 def fsync_favorites(sdir, u, quiet):
 	"""
 	Sync all the favorites.
-	These are the favorites by the user, not photos by the user that have been favorited.
+	These are the favorites by the user, not photos by the user that have been favorited by others.
 	"""
 
 	if not quiet: print 'Syncing favorites (f)...'
 
+	# Pull down favorites from Flickr and write to file
+	favs = _get_favorites(u.Flickr.FlickrAPI, quiet)
+	_put_favorites(favs, sdir)
+
+def _get_favorites(api, quiet):
 	# Accumulate favorites here and key by photo id
 	favorites = {}
-
 
 	# Multiple pages
 	pg = 1
@@ -471,7 +476,7 @@ def fsync_favorites(sdir, u, quiet):
 	perpage = 50
 
 	while pg <= pages:
-		ret = u.Flickr.FlickrAPI.favorites_getList(per_page=perpage, page=pg)
+		ret = api.favorites_getList(per_page=perpage, page=pg)
 		photos = ret.find('photos')
 		pages = int(photos.attrib['pages'])
 
@@ -488,8 +493,9 @@ def fsync_favorites(sdir, u, quiet):
 		# Next page please
 		pg += 1
 
+	return favorites
 
-
+def _put_favorites(favorites, sdir):
 	# Check that file doesn't exist
 	fname = sdir + 'favorites.xml'
 	if os.path.exists(fname):
@@ -513,10 +519,10 @@ def fsync_favorites(sdir, u, quiet):
 
 		f.write('\t\t<favorite id="%s" owner="%s" title="%s" />\n' % (c['psid'], c['owner'], c['title']))
 
-
 	f.write('\t</favorites>\n')
-	f.write('</asofa>')
+	f.write('</asofa>\n')
 	f.close()
+
 
 def fsync_groups(sdir, u, quiet):
 	"""
