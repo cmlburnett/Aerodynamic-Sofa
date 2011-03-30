@@ -1636,102 +1636,107 @@ def getPeople(u, pid):
 
 	return people
 
+
 def fsync_profile(sdir, u, quiet):
 	"""
 	Sync the auth's user profile.
 	"""
 
+	prof = _get_profile(u.Flickr.FlickrAPI, u.getNSID(), quiet)
+	_put_profile(prof, sdir)
+
+def _get_profile(api, nsid, quiet):
 	# Get basic user information
-	ret = u.Flickr.FlickrAPI.people_getInfo(user_id=u.getNSID())
+	ret = api.people_getInfo(user_id=nsid)
 	p = ret.find('person')
 
-	nsid = p.attrib['nsid']
-	ispro = p.attrib['ispro']
-	username = p.find('username').text
-	realname = p.find('realname').text
-	mbox = p.find('mbox_sha1sum').text
-	loc = p.find('location').text
+	# Accumulate profile here
+	prof = {}
 
-	url = {}
-	url['photos'] = p.find('photosurl').text
-	url['profile'] = p.find('profileurl').text
-	url['mobile'] = p.find('mobileurl').text
+	prof['nsid'] = p.attrib['nsid']
+	prof['ispro'] = p.attrib['ispro']
+	prof['username'] = p.find('username').text
+	prof['realname'] = p.find('realname').text
+	prof['mbox'] = p.find('mbox_sha1sum').text
+	prof['loc'] = p.find('location').text
 
-	firstphoto = p.find('photos').find('firstdate').text
-	firstphotostr = datetime.datetime.fromtimestamp(float(firstphoto))
-	cnt = p.find('photos').find('count').text
-	vws = p.find('photos').find('views').text
+	prof['url'] = {}
+	prof['url']['photos'] = p.find('photosurl').text
+	prof['url']['profile'] = p.find('profileurl').text
+	prof['url']['mobile'] = p.find('mobileurl').text
+
+	prof['firstphoto'] = p.find('photos').find('firstdate').text
+	prof['firstphotostr'] = datetime.datetime.fromtimestamp(float(prof['firstphoto']))
+	prof['cnt'] = p.find('photos').find('count').text
+	prof['vws'] = p.find('photos').find('views').text
 
 
 	# Get tags
-	ret = u.Flickr.FlickrAPI.tags_getListUser()
+	ret = api.tags_getListUser()
 	ret2 = ret.find('who')
 	ret3 = ret2.find('tags')
 
 	#  Pull out tags
-	tags = []
+	prof['tags'] = []
 	for t in ret3.findall('tag'):
-		tags.append(t.text.encode('utf-8'))
+		prof['tags'].append(t.text.encode('utf-8'))
 
 	# Force order of tags so random order doesn't affect file history
-	tags.sort()
+	prof['tags'].sort()
 
 
 	# Get preferences
-	prefs = {}
+	prof['prefs'] = {}
 
-	ret = u.Flickr.FlickrAPI.prefs_getContentType()
-	prefs['contenttype'] = ret.find('person').attrib['content_type']
+	ret = api.prefs_getContentType()
+	prof['prefs']['contenttype'] = ret.find('person').attrib['content_type']
 
-	ret = u.Flickr.FlickrAPI.prefs_getGeoPerms()
-	prefs['geoperms'] = ret.find('person').attrib['geoperms']
-	prefs['importgeoexif'] = ret.find('person').attrib['importgeoexif']
+	ret = api.prefs_getGeoPerms()
+	prof['prefs']['geoperms'] = ret.find('person').attrib['geoperms']
+	prof['prefs']['importgeoexif'] = ret.find('person').attrib['importgeoexif']
 
-	ret = u.Flickr.FlickrAPI.prefs_getHidden()
-	prefs['hidden'] = ret.find('person').attrib['hidden']
+	ret = api.prefs_getHidden()
+	prof['prefs']['hidden'] = ret.find('person').attrib['hidden']
 
-	ret = u.Flickr.FlickrAPI.prefs_getPrivacy()
-	prefs['privacy'] = ret.find('person').attrib['privacy']
+	ret = api.prefs_getPrivacy()
+	prof['prefs']['privacy'] = ret.find('person').attrib['privacy']
 
-	ret = u.Flickr.FlickrAPI.prefs_getSafetyLevel()
-	prefs['safety'] = ret.find('person').attrib['safety_level']
+	ret = api.prefs_getSafetyLevel()
+	prof['prefs']['safety'] = ret.find('person').attrib['safety_level']
 
+	return prof
 
-	# Check that file doesn't exist
-	fname = sdir + 'profile.xml'
-	if os.path.exists(fname):
-		os.unlink(fname)
-
-	# Make sure directory exists
-	if not os.path.exists(sdir):
-		os.mkdir(sdir)
-
-	# Open output XML file
-	f = open(fname, 'w')
+def _put_profile(prof, sdir):
+	f = _openxml(sdir, 'profile.xml')
 	f.write('<?xml version="1.0" encoding="utf-8"?>\n')
 	f.write('<asofa>\n')
-	f.write('\t<profile nsid="%s" username="%s" realname="%s">\n' % (nsid, username, realname))
-	f.write('\t\t<mbox>%s</mbox>\n' % mbox)
-	f.write('\t\t<location>%s</location>\n' % loc)
-	f.write('\t\t<firstphoto date="%s" datestr="%s" />\n' % (firstphoto, firstphotostr))
-	f.write('\t\t<numphotos>%s</numphotos>\n' % cnt)
-	f.write('\t\t<views>%s</views>\n' % vws)
+	f.write('\t<profile nsid="%s" username="%s" realname="%s">\n' % (prof['nsid'], prof['username'], prof['realname']))
+	f.write('\t\t<mbox>%s</mbox>\n' % prof['mbox'])
+	f.write('\t\t<location>%s</location>\n' % prof['loc'])
+	f.write('\t\t<firstphoto date="%s" datestr="%s" />\n' % (prof['firstphoto'], prof['firstphotostr']))
+	f.write('\t\t<numphotos>%s</numphotos>\n' % prof['cnt'])
+	f.write('\t\t<views>%s</views>\n' % prof['vws'])
 
 	f.write('\t\t<preferences')
-	keys = prefs.keys()
+	keys = prof['prefs'].keys()
 	keys.sort()
-	for k in keys:				f.write(' %s="%s"' % (k, prefs[k]))
+	for k in keys:						f.write(' %s="%s"' % (k, prof['prefs'][k]))
 	f.write(' />\n')
 
-	for k,v in url.items():		f.write('\t\t<url_%s>%s</url_%s>\n' % (k, v, k))
+	for k,v in prof['url'].items():		f.write('\t\t<url_%s>%s</url_%s>\n' % (k, v, k))
 	f.write('\t\t<tags>\n')
-	for t in tags:				f.write('\t\t\t<tag val="%s" />\n' % esc(t))
+	for t in prof['tags']:				f.write('\t\t\t<tag val="%s" />\n' % esc(t))
 	f.write('\t\t</tags>\n')
 	f.write('\t</profile>\n')
 	f.write('</asofa>\n')
 	f.close()
 
 
+#------------------------------------------------------------------------------
+#------------------------------------------------------------------------------
+# Objects
+#------------------------------------------------------------------------------
+#------------------------------------------------------------------------------
 
 
 class Flickr:
