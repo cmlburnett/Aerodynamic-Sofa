@@ -298,6 +298,24 @@ def index(seq, f):
 
 	return -1
 
+def _openxml(sdir, name):
+	"""
+	Checks that @sdir exists and if @name exists in @sdir then it is deleted.
+	Returns a write-only file object to @name.
+	"""
+
+	# Make sure directory exists
+	if not os.path.exists(sdir):
+		os.mkdir(sdir)
+
+	# Check that file doesn't exist
+	fname = sdir + name
+	if os.path.exists(fname):
+		os.unlink(fname)
+
+	# Open output XML file
+	return open(fname, 'w')
+
 #------------------------------------------------------------------------------
 #------------------------------------------------------------------------------
 # XML reader classes
@@ -380,9 +398,14 @@ def fsync_contacts(sdir, u, quiet):
 
 	if not quiet: print 'Syncing contacts (t)...'
 
+	# Pull down contacts from Flickr and write to file
+	contacts = _get_contacts(u.Flickr.FlickrAPI, quiet)
+	_put_contacts(contacts, sdir)
+
+
+def _get_contacts(api, quiet):
 	# Accumulate contacts here and key by nsid
 	contacts = {}
-
 
 	# Multiple pages
 	pg = 1
@@ -390,7 +413,7 @@ def fsync_contacts(sdir, u, quiet):
 	perpage = 50
 
 	while pg <= pages:
-		ret = u.Flickr.FlickrAPI.contacts_getList(per_page=perpage, page=pg)
+		ret = api.contacts_getList(per_page=perpage, page=pg)
 		cntcts = ret.find('contacts')
 		pages = int(cntcts.attrib['pages'])
 
@@ -410,19 +433,10 @@ def fsync_contacts(sdir, u, quiet):
 		# Next page please
 		pg += 1
 
+	return contacts
 
-
-	# Check that file doesn't exist
-	fname = sdir + 'contacts.xml'
-	if os.path.exists(fname):
-		os.unlink(fname)
-
-	# Make sure directory exists
-	if not os.path.exists(sdir):
-		os.mkdir(sdir)
-
-	# Open output XML file
-	f = open(fname, 'w')
+def _put_contacts(contacts, sdir):
+	f = _openxml(sdir, 'contacts.xml')
 	f.write('<?xml version="1.0" encoding="utf-8"?>\n')
 	f.write('<asofa>\n')
 	f.write('\t<contacts>\n')
