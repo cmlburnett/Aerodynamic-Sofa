@@ -1212,17 +1212,8 @@ def fsync_photo(sdir, u, quiet, pid, counter):
 		os.mkdir(fname)
 
 	fname += folder + '/'
-	if not os.path.exists(fname):
-		os.mkdir(fname)
 
-	fname += '%s.xml' % pid
-
-	# Check that file doesn't exist
-	if os.path.exists(fname):
-		os.unlink(fname)
-
-	# Open output XML file
-	f = open(fname, 'w')
+	f = _openxml(fname, '%s.xml' % pid)
 	f.write('<?xml version="1.0" encoding="utf-8"?>\n')
 	f.write('<asofa>\n')
 
