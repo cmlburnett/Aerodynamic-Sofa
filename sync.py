@@ -1103,6 +1103,8 @@ def fsync_photos(sdir, u, quiet, ids, date=None):
 	# Pull down each photo fully
 	cnt = 0
 	if len(ids):
+		# Trim out empty pids
+		ids = [_i for _i in ids if len(_i)]
 		for pid in ids:
 			# UI counter
 			cnt += 1
@@ -1123,6 +1125,8 @@ def fsync_photos(sdir, u, quiet, ids, date=None):
 				sys.exit(-1);
 
 	else:
+		# Trim out empty pids (could be from a deleted photo as pulled down for a day's stats)
+		pids = [_i for _i in pids if len(_i)]
 		for pid in pids:
 			# UI counter
 			cnt += 1
@@ -1133,8 +1137,14 @@ def fsync_photos(sdir, u, quiet, ids, date=None):
 				try:
 					fsync_photo(sdir, u, quiet, pid, (cnt, len(pids)))
 					break
+				except flickrapi.exceptions.FlickrError, e:
+					if e.code == 1:
+						print pid, 'Photo not found'
+					else:
+						print e
+
 				except Exception, e:
-					print e
+					print type(e), e
 
 				plztry -= 1
 			if plztry == 0:
