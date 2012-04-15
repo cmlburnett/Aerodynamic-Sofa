@@ -49,6 +49,7 @@ def main(args):
 	sdir = kargs['dir']
 	limit = kargs['limit']
 	recurse = kargs['recurse']
+	resume = kargs['resume']
 	date = kargs['date']
 	ids = kargs['args']
 
@@ -68,7 +69,7 @@ def main(args):
 	if 'c' in limit:	fsync_collections(sdir, u, quiet, ids, recurse)
 	if 's' in limit:	fsync_sets(sdir, u, quiet, ids, recurse)
 	if 'g' in limit:	fsync_galleries(sdir, u, quiet)
-	if 'p' in limit:	fsync_photos(sdir, u, quiet, ids, date)
+	if 'p' in limit:	fsync_photos(sdir, u, quiet, ids, resume, date)
 	if 'o' in limit:	fsync_profile(sdir, u, quiet)
 
 def parseopts(args):
@@ -77,7 +78,7 @@ def parseopts(args):
 	"""
 
 	# Parse out options
-	lopts, args = getopt.getopt(args, 'c:d:hl:qr', ['accesskey=', 'secretkey=', 'uid='])
+	lopts, args = getopt.getopt(args, 'c:d:e:hl:qr', ['accesskey=', 'secretkey=', 'uid='])
 
 	# Map options to dictionary (yes, over-writing repeats)
 	dopts = {}
@@ -126,6 +127,7 @@ Options:
               You will need to quote this argument since the pipe will be
               intercepted by the shell.  Single quotes are sufficient.
               You may not specific ID\'s with a date.
+  -e ID       Resume from the given ID
   [ID ID...]  Any number of ID\'s may be supplied that are specifically synced
               Collections, Photos, and Sets accept ID\'s and these options are then
               in the -l OPTS list to avoid ambiguity in what the ID\'s belong.
@@ -156,6 +158,7 @@ dir: ./flickr/"""
 	limit = 'cfgoprst'
 	date = None
 	recurse = None
+	resume = None
 
 	# Path to config file
 	cfgpath = None
@@ -185,6 +188,10 @@ dir: ./flickr/"""
 
 		if len(date) == 1:
 			date = tuple([date[0], date[0]])
+
+	# Resume ID
+	if '-e' in dopts:
+		resume = dopts['-e']
 
 	# Load config if it exists (this check avoids the need to *have* a config and if none is provided then all options must come in as args)
 	if os.path.exists(cfgpath):
@@ -249,7 +256,14 @@ dir: ./flickr/"""
 
 		if len(limit) > 1:			fails.append('Date can only be provided with a `-l p`')
 		elif list(limit)[0] != 'p':	fails.append('Date can only be provided with a `-l p`')
-
+	if resume:
+		if 'c' in limit:			fails.append('Cannot resume on collections')
+		if 'f' in limit:			fails.append('Cannot resume on favorites')
+		if 'g' in limit:			fails.append('Cannot resume on galleries')
+		if 'r' in limit:			fails.append('Cannot resume on groups')
+		if 's' in limit:			fails.append('Cannot resume on sets')
+		if 't' in limit:			fails.append('Cannot resume on contacts')
+		if 'o' in limit:			fails.append('Cannot resume on profile')
 
 	# Trailing slash
 	if sdir and sdir[-1] != '/':
@@ -267,7 +281,7 @@ dir: ./flickr/"""
 	if sdir[0] == '.':
 		sdir = os.getcwd() + sdir[1:]
 
-	return {'accesskey': ak, 'secretkey': sk, 'uid': uid, 'quiet': quiet, 'dir': sdir, 'limit': limit, 'recurse': recurse, 'date': date, 'args': args}
+	return {'accesskey': ak, 'secretkey': sk, 'uid': uid, 'quiet': quiet, 'dir': sdir, 'limit': limit, 'recurse': recurse, 'date': date, 'resume': resume, 'args': args}
 
 
 #------------------------------------------------------------------------------
@@ -777,7 +791,7 @@ def fsync_sets(sdir, u, quiet, ids, recurse):
 				pg += 1
 
 		# Pull down photos in all sets listed
-		fsync_photos(sdir, u, quiet, pids)
+		fsync_photos(sdir, u, quiet, None, pids)
 
 def _get_sets(api, ids, sdir, quiet):
 	# Accumulate sets here
@@ -977,7 +991,7 @@ def _put_galleries(galleries, sdir):
 	f.write('</asofa>\n')
 	f.close()
 
-def fsync_photos(sdir, u, quiet, ids, date=None):
+def fsync_photos(sdir, u, quiet, ids, resume=None, date=None):
 	"""
 	Sync all the photos.
 	"""
@@ -986,7 +1000,7 @@ def fsync_photos(sdir, u, quiet, ids, date=None):
 
 	pids = []
 
-	if len(ids):
+	if len(ids) or resume:
 		ids = [unicode(_z) for _z in ids]
 
 		# Check that file doesn't exist
@@ -1105,10 +1119,18 @@ def fsync_photos(sdir, u, quiet, ids, date=None):
 	if len(ids):
 		# Trim out empty pids
 		ids = [_i for _i in ids if len(_i)]
+
 		for pid in ids:
 			# UI counter
 			cnt += 1
 
+			if resume != None:
+				if resume == pid:
+					resume = None
+				else:
+					if not quiet:
+						print '%6d of %6d: %s SKIPPING TO RESUME TO %s' % (cnt, len(ids), pid, resume)
+					continue
 
 			# Try 5 times
 			plztry = 5
@@ -1130,6 +1152,14 @@ def fsync_photos(sdir, u, quiet, ids, date=None):
 		for pid in pids:
 			# UI counter
 			cnt += 1
+
+			if resume != None:
+				if resume == pid:
+					resume = None
+				else:
+					if not quiet:
+						print '%6d of %6d: %s SKIPPING TO RESUME TO %s' % (cnt, len(pids), pid, resume)
+					continue
 
 			# Try 5 times
 			plztry = 5
@@ -1494,7 +1524,7 @@ def getExif(u, pid, secret):
 			e['raw'] = e['raw'].encode('utf-8')
 
 		c = ex.find('clean')
-		if c:
+		if c != None:
 			e['clean'] = c.text.encode('utf-8')
 
 		exifret.append(e)
