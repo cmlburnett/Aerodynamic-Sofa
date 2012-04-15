@@ -537,8 +537,8 @@ def _get_groups(api, nsid, quiet):
 	for grp in grps.findall('group'):
 		nsid = grp.attrib['nsid']
 		name = grp.attrib['name']
-		admin = bool(int(grp.attrib['admin']))
-		adult = bool(int(grp.attrib['eighteenplus']))
+		admin = len(grp.attrib['admin']) and bool(int(grp.attrib['admin'])) or False
+		adult = len(grp.attrib['eighteenplus']) and bool(int(grp.attrib['eighteenplus'])) or False
 
 		groups[nsid] = {'nsid': nsid, 'name': name, 'admin': admin, 'adult': adult}
 
