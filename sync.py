@@ -1050,7 +1050,9 @@ def fsync_photos(sdir, u, quiet, ids, resume=None, date=None):
 					elif pg % 10 == 0:
 						sys.stdout.write('X')
 					else:
-						sys.stdout.write('.')
+						# Fast enough that ever ten pages is sufficient to see progress
+						#sys.stdout.write('.')
+						pass
 
 					sys.stdout.flush()
 
