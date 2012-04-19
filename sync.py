@@ -791,7 +791,7 @@ def fsync_sets(sdir, u, quiet, ids, recurse):
 				pg += 1
 
 		# Pull down photos in all sets listed
-		fsync_photos(sdir, u, quiet, None, pids)
+		fsync_photos(sdir, u, quiet, pids)
 
 def _get_sets(api, ids, sdir, quiet):
 	# Accumulate sets here
